@@ -3,11 +3,9 @@ library(cowplot)
 library(openxlsx)
 library(stringr)
 
-setwd("/Users/Matt/Desktop/Bull_Lab/T7Attenuation/Promoter")
-
 cbPalette <- c("#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7", "#999999")
 
-fit <- read.xlsx("Fitness.xlsx")
+fit <- read.xlsx("../../data/Fitness.xlsx")
 
 fit$Background <- factor(fit$Background, 
                          levels=c('T7Hi', '10deop', '8st'))
@@ -69,7 +67,6 @@ init_fit_plot <- fit %>% filter(!grepl('evo', Strain), !grepl('L2', Strain)) %>%
         legend.key.size=unit(1.5, 'lines'))
 
 init_fit_plot
-save_plot("fit_init.pdf", init_fit_plot, base_width=9)
 
 # Plot fitnesses for evolved lines. 
 evo_fit <- fit %>% filter(Line %in% c('910v2', '910v2_L2', '8st_9i2', '8st_910', '44_910') | Strain==c('T7Hi', '11--44')) %>%
