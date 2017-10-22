@@ -1,0 +1,9 @@
+{
+	"n_targets": 4380,
+	"n_bootstraps": 0,
+	"n_processed": 29514539,
+	"kallisto_version": "0.43.0",
+	"index_version": 10,
+	"start_time": "Wed Jun 14 15:42:42 2017",
+	"call": "kallisto quant -i /Users/Matt/Desktop/Bull_Lab/T7Attenuation/Promoter/rnaSeq/transcripts.idx -o PA125_44_9v2_S11 --single -l 450 -s 250 PA125_44_9v2_S11_R1_001.fastq.gz"
+}
