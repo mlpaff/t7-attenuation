@@ -37,6 +37,6 @@ data <- samples %>%
 
 new <- left_join(conditions, data)
 
-write.csv(new, "../../data/hisat2_rna_abundance.csv", row.names=FALSE)
+write.csv(new, "../../data/results/hisat2_rna_abundance.csv", row.names=FALSE)
 
 

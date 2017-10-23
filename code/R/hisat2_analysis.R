@@ -4,7 +4,7 @@ library(cowplot)
 
 cbPalette <- c('#e41a1c', '#377eb8', '#4daf4a', '#984ea3', '#ff7f00', '#ffff33', '#a65628', '#f781bf', '#999999')
 
-rna <- read.csv("../../data/hisat2_rna_abundance.csv")
+rna <- read.csv("../../data/restults/hisat2_rna_abundance.csv")
 
 rna$gene <- factor(rna$gene, levels=unique(rna$gene), ordered=TRUE)
 rna$strain <- factor(rna$strain, 

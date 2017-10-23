@@ -4,7 +4,7 @@ library(DESeq2)
 library(cowplot)
 library(stringr)
 
-counts <- read.csv("../../data/hisat2_rna_abundance.csv", header=TRUE)
+counts <- read.csv("../../data/results/hisat2_rna_abundance.csv", header=TRUE)
 t7_genes <- read.csv("../../data/t7_genes.csv", header=TRUE)
 
 # Create the counts matrix with condition, gene, counts
@@ -83,7 +83,7 @@ results_data_frame$star[results_data_frame$padj <= .01]  <- "**"
 results_data_frame$star[results_data_frame$padj <= .001] <- "***"
 
 # Output differential expression comparing different knockout strains to wt (T7Hi)
-write.csv(results_data_frame, "../../data/deseq2_results_vs_wt.csv")
+write.csv(results_data_frame, "../../data/restults/deseq2_results_vs_wt.csv")
 
 # Extract results for comparisons of differential expression between evolved and initial strains
 # Results for wt-910 vs wt-910evo
@@ -102,7 +102,7 @@ df_evo$star[df_evo$padj <= .01]  <- "**"
 df_evo$star[df_evo$padj <= .001] <- "***"
 
 # Save comparison of differential expression between initial and evolved strains 
-write.csv(df_evo, "../../data/deseq2_results_evolved.csv")
+write.csv(df_evo, "../../data/results/deseq2_results_evolved.csv")
 
 # Return normalized counts data for all strains 
 # Function for extracting plotCounts data from dds
@@ -121,4 +121,4 @@ get_all_abundance <- function(genes_list){
 t7_abundance <- get_all_abundance(as.character(t7_genes$genes))
 t7_abundance$gene1 <- factor(t7_abundance$gene1, levels=unique(t7_abundance$gene1), ordered=TRUE)
 
-write.csv(t7_abundance, "../../data/tot_t7_abundance.csv")
+write.csv(t7_abundance, "../../data/results/tot_t7_abundance.csv")

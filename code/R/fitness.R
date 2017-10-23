@@ -5,7 +5,7 @@ library(stringr)
 
 cbPalette <- c("#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7", "#999999")
 
-fit <- read.xlsx("../../data/Fitness.xlsx")
+fit <- read.xlsx("../../data/results/Fitness.xlsx")
 
 fit$Background <- factor(fit$Background, 
                          levels=c('T7Hi', '10deop', '8st'))
@@ -93,7 +93,6 @@ evo_fit <- fit %>% filter(Line %in% c('910v2', '910v2_L2', '8st_9i2', '8st_910',
         axis.text.x = element_text(angle = 45, hjust=1))
 
 evo_fit
-save_plot("fit_evo.pdf", evo_fit, base_height=5, base_width=8)
 
 # fit %>% filter(!grepl('evo', Strain)) %>% group_by(Strain) %>% summarize(mean_fit=mean(Fitness))
 
