@@ -74,7 +74,7 @@ evo_fit <- fit %>% filter(Line %in% c('910v2', '910v2_L2', '8st_9i2', '8st_910',
   stat_summary(aes(color=Background, shape=Background), geom='point', fun.data='mean_se', size=5) + 
   stat_summary(geom='errorbar', fun.data='mean_se', width=0.2) +
   geom_segment(aes(x = 3, y = 32.0733, xend = 3, yend = 36.1367), arrow = arrow(length=unit(0.35, "cm")), size=0.6, color='black') +
-  geom_segment(aes(x = 3.1, y = 33.41, xend = 3.85, yend = 33.41), arrow = arrow(length=unit(0.35, "cm")), size=1, color='black', linetype=3) +
+  geom_segment(aes(x = 3.1, y = 33.41, xend = 3.85, yend = 33.41), arrow = arrow(length=unit(0.35, "cm")), size=1, color='grey') +
   geom_segment(aes(x = 4, y = 33.96, xend = 4, yend = 35.1033), arrow = arrow(length=unit(0.35, "cm")), size=0.6, color='black') +
   geom_segment(aes(x = 5, y = 30.473, xend = 5, yend = 32.295), arrow = arrow(length=unit(0.35, "cm")), size=0.6, color='black') +
   geom_segment(aes(x = 6, y = 32.338, xend = 6, yend = 38.0375), arrow = arrow(length=unit(0.35, "cm")), size=0.6, color='black') +
