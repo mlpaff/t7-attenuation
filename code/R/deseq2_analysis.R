@@ -9,14 +9,14 @@ t7_genes <- read.csv("../../data/t7_genes.csv", header=TRUE)
 
 # Create the counts matrix with condition, gene, counts
 # replicate 2 has issues with incorrect labelling so I am excluding it from the analysis until the samples are re-sequenced
-counts %>% filter(rep != '2') %>% mutate(condition=paste0(strain, '-', Sample)) %>% select(condition, gene, counts) %>%
+counts %>% mutate(condition=paste0(strain, '-', Sample)) %>% select(condition, gene, counts) %>%
   spread(condition, counts) -> mtx_counts
 
 # Create matrix using the counts data for input into DESeq2
 mtx_counts %>% remove_rownames() %>% column_to_rownames(var="gene") -> mtx_counts
 
 # Set conditions table with condition and corresponding sample
-counts %>% filter(rep != '2') %>% mutate(condition=paste0(strain, '-', Sample)) %>% 
+counts %>% mutate(condition=paste0(strain, '-', Sample)) %>% 
   select(condition, gene, treatment) %>% spread(gene, treatment) -> meta
 
 coldata <- data.frame(
@@ -50,7 +50,7 @@ get_results <- function(con){
   # Re-order the data frame in order of ascending adjusted p-value
   #resOrdered <- res[order(res$padj),]
   #df <- data.frame(resOrdered, gene=row.names(resOrdered), treatment=con)
-  df <- data.frame(res, gene=row.names(res), treatment=con)
+  df <- data.frame(res, gene=row.names(res), treatment=con) %>% arrange(padj)
 }
 
 # Consolidate all results into a single data frame of differential expression for all conditions compared to wt
@@ -74,7 +74,8 @@ labels <-data.frame(
   knockout=c('wt', 'phi9', 'phi910', 'phi10', 'wt', 'phi9', 'phi10', 'phi9', 'phi910', 'phi910', 'phi910')
 )
 
-results_data_frame <- inner_join(labels, results_data_frame)
+results_data_frame <- inner_join(labels, results_data_frame) %>% filter(padj<=0.05)
+
 
 # Set stars to indicate significance level from adjusted p-values
 results_data_frame$star <- ""
@@ -83,7 +84,9 @@ results_data_frame$star[results_data_frame$padj <= .01]  <- "**"
 results_data_frame$star[results_data_frame$padj <= .001] <- "***"
 
 # Output differential expression comparing different knockout strains to wt (T7Hi)
-write.csv(results_data_frame, "../../data/restults/deseq2_results_vs_wt.csv")
+write.csv(results_data_frame, "../../data/results/deseq2_results_vs_wt.csv", row.names=F)
+
+results_data_frame %>% filter(knockout=='phi9')
 
 # Extract results for comparisons of differential expression between evolved and initial strains
 # Results for wt-910 vs wt-910evo
