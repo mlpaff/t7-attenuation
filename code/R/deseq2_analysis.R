@@ -44,19 +44,19 @@ dds <- dds[ rowSums(counts(dds)) > 1, ]
 dds <- DESeq(dds)
 
 # Function extracts results for single pair-wise comparison between "condition" and wt T7 -- returns data frame of results
-get_results <- function(con){
+get_results <- function(con, ref){
   # given a condition, return results comparing to wt
-  res <- results(dds, contrast=c("condition", con, "wt"), alpha=0.05)
+  res <- results(dds, contrast=c("condition", con, ref), alpha=0.05)
   # Re-order the data frame in order of ascending adjusted p-value
   #resOrdered <- res[order(res$padj),]
   #df <- data.frame(resOrdered, gene=row.names(resOrdered), treatment=con)
-  df <- data.frame(res, gene=row.names(res), treatment=con) %>% arrange(padj)
+  df <- data.frame(res, gene=row.names(res), treatment=con, control=ref) %>% arrange(padj)
 }
 
 # Consolidate all results into a single data frame of differential expression for all conditions compared to wt
-get_all_results <- function(list_strains){
+get_all_results <- function(list_strains, ref){
   # Create a data frame with results from all pairwise comparisons of diff expression from each promoter knockout strain
-  list_strains %>% map(get_results) %>%
+  list_strains %>% map(get_results, ref=ref) %>%
     bind_rows()
 }
 
@@ -64,7 +64,11 @@ get_all_results <- function(list_strains){
 treats <- str_extract(paste(unique(coldata$condition)), '.*-.*|deop')
 treats <- treats[!is.na(treats)]
 
-results_data_frame <- get_all_results(treats)
+results_vs_wt <- get_all_results(treats, ref="wt")
+results_vs_deop <- get_all_results(c("deop-9", "deop-10"), ref="deop")
+results_evo <- bind_rows(get_all_results("910L2evo", ref="wt-910"), get_all_results("8st-910evo", ref="8st-910"))
+
+all_results <- bind_rows(results_vs_wt, results_vs_deop, results_evo)
 
 # add in information on strain, treatment, background, promoter knockout type to data frame. 
 labels <-data.frame(
@@ -74,7 +78,7 @@ labels <-data.frame(
   knockout=c('wt', 'phi9', 'phi910', 'phi10', 'wt', 'phi9', 'phi10', 'phi9', 'phi910', 'phi910', 'phi910')
 )
 
-results_data_frame <- inner_join(labels, results_data_frame) %>% filter(padj<=0.05)
+results_data_frame <- inner_join(labels, all_results) %>% filter(padj<=0.05)
 
 
 # Set stars to indicate significance level from adjusted p-values
@@ -86,26 +90,6 @@ results_data_frame$star[results_data_frame$padj <= .001] <- "***"
 # Output differential expression comparing different knockout strains to wt (T7Hi)
 write.csv(results_data_frame, "../../data/results/deseq2_results_vs_wt.csv", row.names=F)
 
-results_data_frame %>% filter(knockout=='phi9')
-
-# Extract results for comparisons of differential expression between evolved and initial strains
-# Results for wt-910 vs wt-910evo
-res_910 <- results(dds, contrast=c("condition", "910L2evo", "wt-910"), alpha=0.05)
-df_910 <- data.frame(res_910, gene=row.names(res_910), treatment="910L2evo")
-# Results for 8st-910 vs 8st-910evo
-res_8st <- results(dds, contrast=c("condition", "8st-910evo", "8st-910"), alpha=0.05)
-df_8st <- data.frame(res_8st, gene=row.names(res_8st), treatment="8st-910evo")
-
-# Combine data frames for evolution results and add labels
-df_evo <- inner_join(labels, bind_rows(df_910, df_8st))
-
-df_evo$star <- ""
-df_evo$star[df_evo$padj <= .05]  <- "*"
-df_evo$star[df_evo$padj <= .01]  <- "**"
-df_evo$star[df_evo$padj <= .001] <- "***"
-
-# Save comparison of differential expression between initial and evolved strains 
-write.csv(df_evo, "../../data/results/deseq2_results_evolved.csv")
 
 # Return normalized counts data for all strains 
 # Function for extracting plotCounts data from dds
