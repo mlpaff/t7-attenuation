@@ -1,4 +1,4 @@
-# Combine read-counts data generated from hisat2
+# Combine read-counts data generated from hisat2 and normalize data
 require(readr)
 require(purrr)
 library(stringr)
@@ -35,8 +35,18 @@ data <- samples %>%
   mutate(file_contents=map(path, ~ read_table2(file.path(dir_path, .), col_names=colnames, col_types=cols()))) %>%
   unnest() %>% select(-path)
 
-new <- left_join(conditions, data)
+rna <- left_join(conditions, data)
 
-write.csv(new, "../../data/results/hisat2_rna_abundance.csv", row.names=FALSE)
+# Normalize the raw RNA counts, first to the sum of raw counts for all genes up to and including gene 7.7, then by TPM
+rna %>% group_by(rep, strain) %>% 
+  mutate(nfactor=sum(counts[gene<='7.7'])) %>%
+  mutate(normcounts=counts/nfactor) %>%
+  mutate(rpk=normcounts/((stop-start)/1000)) %>%
+  mutate(rpm=sum(rpk)) %>%
+  mutate(tpm=rpk/rpm) -> counts
+
+counts$gene <- factor(counts$gene, levels=rna$gene[1:60])
+
+write.csv(counts, "../../data/results/counts_rna_abundance.csv", row.names=FALSE)
 
 
