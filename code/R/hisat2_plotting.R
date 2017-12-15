@@ -5,7 +5,6 @@ library(broom)
 library(colorspace)
 library(ggrepel)
 
-
 cbPalette <- c("#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7", "#999999")
 
 rna <- read.csv("../../data/results/rna_rna_abundance.csv")
@@ -78,12 +77,14 @@ rna_t7
 save_plot("../../figures/rna_distribution.pdf", rna_t7, base_width=10, base_height=10)
 
 
-# Scatter plots of gene expression
+# Scatter plots of mean RNA abundance for mutants vs. wt
+# calculate mean tpm for each gene grouped by strain, label gene 9 and 10A, output data frame
 rna %>% filter(!gene=='10B', !grepl("evo|^11-44$", strain)) %>% select(rep, background, gene, strain, tpm) %>% group_by(strain, gene) %>% 
   summarize(mean_tpm = mean(tpm)) %>% ungroup() %>%
   spread(strain, mean_tpm) %>% mutate(label=if_else(grepl('^9$|^10A$', gene), paste(gene), '')) %>%
   gather(strain, tpm, phi9v2:`8st-910`) -> tpm_scatter
 
+# lable information to be joined to tpm_scatter
 labels <-data.frame(
   strain=c('phi9v2', 'phi910v2','phi10', '11-44', '11-44-phi9v2', '11-44-phi10', '8st-9', '8st-910', '8st-910evo', '910L2evo'),
   background=c('wt', 'wt', 'wt', '10deop', '10deop', '10deop', '8st', '8st', '8st', 'wt'),
@@ -100,6 +101,8 @@ tpm_scatter$knockout <- factor(tpm_scatter$knockout,
                                  'phi9' = expression(paste(Delta, phi, '9')),
                                  'phi10' = expression(paste(Delta, phi, '10')),
                                  'phi910' = expression(paste(Delta, phi, '9/', phi, '10'))))
+
+# data frame used to label the 'NA' panels lacking data
 df <- data.frame(x=0.07,
                  y=0.07,
                  label=c('','','','','','NA','','NA',''),
@@ -110,6 +113,7 @@ df <- data.frame(x=0.07,
                             'paste(Delta, phi, "9")', 'paste(Delta, phi, "10")', 'paste(Delta, phi, "9/", phi, "10")', 
                             'paste(Delta, phi, "9")', 'paste(Delta, phi, "10")', 'paste(Delta, phi, "9/", phi, "10")'))
 
+# Plot tpm_scatter by knockout and genetic background
 scatter_plot <- tpm_scatter %>% filter(!grepl("evo|^11-44$", strain)) %>% 
   ggplot(aes(x=T7Hi, y=tpm)) +
   geom_segment(aes(x=-Inf, xend=Inf, y=-Inf, yend=Inf), inherit.aes=F, color="grey") + 
@@ -128,7 +132,42 @@ scatter_plot
 
 save_plot("../../figures/rna_scatter.pdf", scatter_plot, base_width = 7, base_height=7)
 
-# Distribution for all genes for initial and evolved lines
+
+
+# Plot subset of genes (8, 9, 10A, 11, 12)
+# dummy data used to allow all points to be in-frame
+dummy2 <- data.frame(strain="T7Hi",
+                     gene=c("8", "9", "10A", "11", "12"),
+                     yval=c(0.048, 0.08, 0.165, 0.018, 0.0125))
+
+abundance_subset_plot <- rna %>% filter(gene %in% c("8", "9", "10A", "11", "12"), !strain %in% c("910L2evo", "8st-910evo")) %>%
+  ggplot(aes(x=knockout, y=tpm, fill=background)) + 
+  stat_summary(geom="bar", fun.data = 'mean_se') +
+  geom_blank(data=dummy2, aes(x=1, y=yval), inherit.aes=F) + 
+  geom_point(show.legend = FALSE) +
+  geom_line(aes(group=rep), show.legend=FALSE) +
+  scale_fill_manual(values=cbPalette, 
+                    labels=parse(text=back_labs)) + 
+  scale_x_discrete(labels=knockout_labs) +
+  scale_y_continuous(expand=c(0,0)) +
+  panel_border() +
+  facet_grid(gene~background, labeller = labeller(gene=as_labeller(function(string, prefix='gene') paste(prefix, string)), 
+                                                  background=label_parsed), scales='free', space='free_x') + 
+  labs(x = "promoter knockout", y = "RNA abundance (tpm)") + 
+  theme(legend.position='none',
+        legend.title = element_blank(),
+        legend.key.size = unit(0.85, 'cm'),
+        legend.text.align = 0,
+        panel.spacing.y = unit(1, "lines"),
+        axis.text.x = element_text(angle = -45, hjust=0, vjust=1))
+
+abundance_subset_plot
+save_plot("../../figures/sub_genes_plot.pdf", abundance_subset_plot, base_width=6, base_height=7)
+
+
+
+# Initial and evolved RNA abundances for genes 8-12
+# info for labelling plot
 line_labs <- c(
   'T7Hi' = 'wt',
   'phi910v2' = 'initial',
@@ -143,16 +182,19 @@ lines$line1 <- factor(lines$line, levels=c('wt', 'wt-910', '8st'),
                               'wt-910' = expression(paste(Delta, phi, '9/', phi, '10'['wt'])), 
                               '8st' = expression(paste(Delta, phi, '9/', phi, '10'['8'[Delta]['stop']]))))
 
+# P-values for genes 8-12, label significant values with "*"
 evo <- evo_pvals %>% filter(gene %in% c("8", "9", "10A", "11", "12"))
 evo$star[evo$padj > .05] <- "NS"
 evo$star[evo$padj <= .05]  <- "*"
 evo2 <- left_join(evo, rna) %>% group_by(gene) %>% mutate(ypos=max(tpm)) 
 
+# Combine RNA expression data with p-values
 evo_data <- left_join(rna, evo2) %>% group_by(knockout) %>% mutate(xpos=length(unique(strain))/2) %>% ungroup()
 evo_data$strain <- factor(evo_data$strain, 
                         levels=c('T7Hi', 'phi910v2', '910L2evo', '8st-910', '8st-910evo'))
 evo_data$gene <- factor(evo_data$gene, levels=evo_data$gene[1:60])
 
+# dummy data for plotting all points in-frame
 dummy <- data.frame(strain="T7Hi",
                     gene=c("8", "9", "10A", "11", "12"),
                     yval=c(0.04, 0.08, 0.16, 0.0175, 0.0125))
@@ -178,32 +220,3 @@ evo_data %>% filter(strain %in% c("T7Hi", "phi910v2", "910L2evo", "8st-910", "8s
 
 evo_rna
 save_plot("../../figures/evo_rna.pdf", evo_rna, base_height=7, base_width=7)
-
-# Look at a subset of genes (8, 9, 10A, 11, 12, 13)
-dummy2 <- data.frame(strain="T7Hi",
-                    gene=c("8", "9", "10A", "11", "12"),
-                    yval=c(0.048, 0.08, 0.165, 0.018, 0.0125))
-
-abundance_subset_plot <- rna %>% filter(gene %in% c("8", "9", "10A", "11", "12"), !strain %in% c("910L2evo", "8st-910evo")) %>%
-  ggplot(aes(x=knockout, y=tpm, fill=background)) + 
-  stat_summary(geom="bar", fun.data = 'mean_se') +
-  geom_blank(data=dummy2, aes(x=1, y=yval), inherit.aes=F) + 
-  geom_point(show.legend = FALSE) +
-  geom_line(aes(group=rep), show.legend=FALSE) +
-  scale_fill_manual(values=cbPalette, 
-                    labels=parse(text=back_labs)) + 
-  scale_x_discrete(labels=knockout_labs) +
-  scale_y_continuous(expand=c(0,0)) +
-  panel_border() +
-  facet_grid(gene~background, labeller = labeller(gene=as_labeller(function(string, prefix='gene') paste(prefix, string)), 
-                                                  background=label_parsed), scales='free', space='free_x') + 
-  labs(x = "promoter knockout", y = "RNA abundance (tpm)") + 
-  theme(legend.position='none',
-    legend.title = element_blank(),
-    legend.key.size = unit(0.85, 'cm'),
-    legend.text.align = 0,
-    panel.spacing.y = unit(1, "lines"),
-    axis.text.x = element_text(angle = -45, hjust=0, vjust=1))
-
-abundance_subset_plot
-save_plot("../../figures/sub_genes_plot.pdf", abundance_subset_plot, base_width=6, base_height=7)
