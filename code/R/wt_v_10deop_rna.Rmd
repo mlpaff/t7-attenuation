@@ -1,0 +1,47 @@
+---
+title: "Wildtype and attenuated RNA expression"
+author: "Benjamin Jack"
+date: "1/17/2018"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(cowplot)
+library(broom)
+library(gtools)
+```
+
+This document contains an analysis of differential gene expression (using transcript abundances) between wildtype T7 and a strain with codon-deoptimized gene 10. There are 6 replicates for each strain. Counts are in transcripts per million (TPM). Raw counts were generated from HISAT2 and bedtools multicov by Matt Pafft.
+
+```{r}
+rna <- read_csv("../../data/results/counts_rna_abundance.csv")
+rna <- filter(rna, strain %in% c("T7Hi", "11-44"))
+
+ggplot(rna, aes(x = factor(gene, levels=unique(mixedsort(gene))), y = tpm)) + 
+  geom_bar(stat="summary", fun.y = "mean", aes(fill = strain), position = "dodge") +
+  #geom_point(aes(color = factor(brep))) +
+  theme(axis.text.x=element_text(angle=45,hjust=1), legend.position = "top") +
+  xlab("gene")
+```
+
+A paired t-test analysis with an FDR correction show about ~15 differentially expressed genes. This is in contrast to an analysis of our earlier G3 paper where we found no differentially expressed genes at the RNA level using a similar analysis pipeline.
+
+```{r }
+wt_atten <- rna %>%
+  ungroup() %>%
+  select(strain, gene, rep, tpm) %>%
+  spread(strain, tpm) %>%
+  rename(wt = T7Hi, atten = `11-44`) %>%
+  group_by(gene) %>%
+  nest() %>%
+  mutate(t_test = purrr::map(data, ~ broom::tidy(t.test(.$wt, .$atten, data = ., paired = F)))) %>%
+  select(-data) %>%
+  unnest() %>%
+  select(gene, p.value, estimate) %>%
+  mutate(p.value_adj = p.adjust(p.value, method = "fdr")) %>%
+  arrange(p.value_adj)
+
+knitr::kable(wt_atten)
+```

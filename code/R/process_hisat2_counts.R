@@ -39,10 +39,11 @@ rna <- left_join(conditions, data)
 
 # Normalize the raw RNA counts, first to the sum of raw counts for all genes up to and including gene 7.7, then by TPM
 rna %>% group_by(rep, strain) %>% 
-  mutate(nfactor=sum(counts[gene<='7.7'])) %>%
-  mutate(normcounts=counts/nfactor) %>%
-  mutate(rpk=normcounts/((stop-start)/1000)) %>%
-  mutate(rpm=sum(rpk)) %>%
+  # mutate(nfactor=sum(counts[gene<='7.7'])) %>% There's a bug here, this logical statement removes all but two genes
+  # mutate(normcounts=counts/nfactor) %>%
+  # mutate(rpk=normcounts/((stop-start)/1000)) %>%
+  mutate(rpk=counts/((stop-start)/1000)) %>%
+  mutate(rpm=sum(rpk)/1000000) %>%
   mutate(tpm=rpk/rpm) -> counts
 
 counts$gene <- factor(counts$gene, levels=rna$gene[1:60])
