@@ -5,8 +5,6 @@ library(cowplot)
 cbPalette <- c("#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7", "#999999")
 
 tpm_stats <- read.csv("../../data/results/pairwise_t_vs_wt.csv")
-# deseq2_stats are not used as fare as I can tell
-deseq2_stats <- read.csv("../../data/results/deseq2_results_vs_wt.csv")
 
 rna <- read.csv("../../data/results/counts_rna_abundance.csv")
 
