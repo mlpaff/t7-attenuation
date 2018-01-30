@@ -17,7 +17,7 @@ This document contains an analysis of differential gene expression (using transc
 
 ```{r}
 rna <- read_csv("../../data/results/counts_rna_abundance.csv")
-rna <- filter(rna, strain %in% c("T7Hi", "11-44"))
+rna <- filter(rna, strain %in% c("T7Hi", "11-44", "phi910v2"))
 
 ggplot(rna, aes(x = factor(gene, levels=unique(mixedsort(gene))), y = tpm)) + 
   geom_bar(stat="summary", fun.y = "mean", aes(fill = strain), position = "dodge") +
@@ -29,7 +29,7 @@ ggplot(rna, aes(x = factor(gene, levels=unique(mixedsort(gene))), y = tpm)) +
 A paired t-test analysis with an FDR correction show about ~15 differentially expressed genes. This is in contrast to an analysis of our earlier G3 paper where we found no differentially expressed genes at the RNA level using a similar analysis pipeline.
 
 ```{r }
-wt_atten <- rna %>%
+wt_atten <- rna %>% filter(strain %in% c("T7Hi", "11-44")) %>% 
   ungroup() %>%
   select(strain, gene, rep, tpm) %>%
   spread(strain, tpm) %>%
@@ -44,4 +44,14 @@ wt_atten <- rna %>%
   arrange(p.value_adj)
 
 knitr::kable(wt_atten)
+
+wt_atten_sig <- filter(wt_atten, p.value_adj < 0.05)$gene
+
+ggplot(rna %>% filter(gene %in% unique(wt_atten_sig)), aes(x = factor(gene, levels=unique(mixedsort(gene))), y = tpm)) + 
+  geom_bar(stat="summary", fun.y = "mean", aes(fill = strain), position = "dodge") +
+  #geom_point(aes(color = factor(brep))) +
+  theme(axis.text.x=element_text(angle=45,hjust=1), legend.position = "top") +
+  xlab("gene")
+
+
 ```
