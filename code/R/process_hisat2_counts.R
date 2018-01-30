@@ -36,17 +36,16 @@ data <- samples %>%
   unnest() %>% select(-path)
 
 rna <- left_join(conditions, data)
+# Make gene names an ordered factor so we can filter by gene number
+rna$gene <- factor(rna$gene, levels=rna$gene[1:60], ordered=T)
 
 # Normalize the raw RNA counts, first to the sum of raw counts for all genes up to and including gene 7.7, then by TPM
 rna %>% group_by(rep, strain) %>% 
-  # mutate(nfactor=sum(counts[gene<='7.7'])) %>% There's a bug here, this logical statement removes all but two genes
-  # mutate(normcounts=counts/nfactor) %>%
-  # mutate(rpk=normcounts/((stop-start)/1000)) %>%
-  mutate(rpk=counts/((stop-start)/1000)) %>%
+  mutate(nfactor=sum(counts[gene<=7.7])) %>%
+  mutate(normcounts=counts/nfactor) %>%
+  mutate(rpk=normcounts/((stop-start)/1000)) %>%
   mutate(rpm=sum(rpk)/1000000) %>%
   mutate(tpm=rpk/rpm) -> counts
-
-counts$gene <- factor(counts$gene, levels=rna$gene[1:60])
 
 write.csv(counts, "../../data/results/counts_rna_abundance.csv", row.names=FALSE)
 

@@ -4,6 +4,7 @@ library(DESeq2)
 library(cowplot)
 library(stringr)
 
+# TODO: regenerate raw count for deseq2
 counts <- read.csv("../../data/results/hisat2_rna_abundance.csv", header=TRUE)
 t7_genes <- read.csv("../../data/t7_genes.csv", header=TRUE)
 

@@ -5,20 +5,12 @@ library(cowplot)
 cbPalette <- c("#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7", "#999999")
 
 tpm_stats <- read.csv("../../data/results/pairwise_t_vs_wt.csv")
+# deseq2_stats are not used as fare as I can tell
 deseq2_stats <- read.csv("../../data/results/deseq2_results_vs_wt.csv")
 
-rna <- read.csv("../../data/results/hisat2_rna_abundance.csv")
-rna$gene <- factor(rna$gene, levels=unique(rna$gene), ordered=TRUE)
+rna <- read.csv("../../data/results/counts_rna_abundance.csv")
 
 tpm_stats %>% filter(strain %in% c("8st-910evo", "910L2evo"), gene %in% c("8", "9", "10A", "11", "12"))
-
-# Normalize the raw RNA counts, first to the sum of raw counts for all genes up to and including gene 7.7, then by TPM
-rna %>% group_by(rep, strain) %>% 
-  mutate(nfactor=sum(counts[gene<='7.7'])) %>%
-  mutate(normcounts=counts/nfactor) %>%
-  mutate(rpk=normcounts/((stop-start)/1000)) %>%
-  mutate(rpm=sum(rpk)) %>%
-  mutate(tpm=rpk/rpm) %>% ungroup -> counts
 
 # take multiple samples from counts data and calculate means for expression data and convert to ratios relative to reference strain
 calc_mean_ratio <- function(g, ref, treat, rna_df){
