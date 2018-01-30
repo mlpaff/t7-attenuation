@@ -12,7 +12,7 @@ rna$gene <- factor(rna$gene, levels=unique(rna$gene), ordered=TRUE)
 
 # mean fitness for each strain 
 mean_fit <- fit %>% group_by(strain_rna) %>% summarize_at(vars(Fitness), funs(mean_fit=mean)) %>% 
-  rename(strain=strain_rna, mean_fit=mean_fit)
+  dplyr::rename(strain=strain_rna, mean_fit=mean_fit)
 mean_fit$strain <- factor(mean_fit$strain)
 
 # Mean rna abundance for each gene in each strain
@@ -21,7 +21,7 @@ mean_rna <- rna %>% group_by(strain, gene) %>% summarize_at(vars(tpm), funs(mean
 mean_data <- left_join(mean_rna, mean_fit)
 
 # This was used to calculate correlation using the individual RNA counts instead of the mean counts
-#data <- left_join(rna, mean_fit)
+# data <- left_join(rna, mean_fit)
 
 res <- mean_data %>% group_by(gene) %>% 
   summarize(p.value=cor.test(mean_count, mean_fit)$p.value,
@@ -33,7 +33,9 @@ res <- mean_data %>% group_by(gene) %>%
 res <- res %>% select(gene, R2) %>% filter(!gene=="10B")
 write.csv(res, "../../data/results/fitness_rna_correlation.csv", row.names = F)
 
-final <- left_join(left_join(mean_data, res), data)
+# `data` should not be here?
+final <- left_join(mean_data, res) # %>% 
+  # left_join(data)
 
 # Plot RNA abundance vs. fitness and label with R-squared values
 corr_plot <- final %>% filter(gene %in% c('8', '9', '10A', '11', '12')) %>%
