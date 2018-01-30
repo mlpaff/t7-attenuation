@@ -45,7 +45,7 @@ rna %>% group_by(rep, strain) %>%
   mutate(normcounts=counts/nfactor) %>%
   mutate(rpk=normcounts/((stop-start)/1000)) %>%
   mutate(rpm=sum(rpk)/1000000) %>%
-  mutate(tpm=rpk/rpm) -> counts
+  mutate(tpm=(rpk/rpm)/1000000) -> counts # Convert TPM to counts relative to 1 
 
 write.csv(counts, "../../data/results/counts_rna_abundance.csv", row.names=FALSE)
 

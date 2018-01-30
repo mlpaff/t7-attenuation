@@ -4,11 +4,9 @@ library(cowplot)
 
 cbPalette <- c("#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7", "#999999")
 
-tpm_stats <- read.csv("../../data/results/pairwise_t_vs_wt.csv")
+tpm_stats <- read.csv("../../data/results/pairwise_t_vs_wt.csv") %>% filter(padj < 0.05)
 
 counts <- read.csv("../../data/results/counts_rna_abundance.csv")
-
-tpm_stats %>% filter(strain %in% c("8st-910evo", "910L2evo"), gene %in% c("8", "9", "10A", "11", "12"))
 
 # take multiple samples from counts data and calculate means for expression data and convert to ratios relative to reference strain
 calc_mean_ratio <- function(g, ref, treat, rna_df){
