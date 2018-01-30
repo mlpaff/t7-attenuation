@@ -7,7 +7,7 @@ library(ggrepel)
 
 cbPalette <- c("#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7", "#999999")
 
-rna <- read.csv("../../data/results/rna_rna_abundance.csv")
+rna <- read.csv("../../data/results/counts_rna_abundance.csv")
 evo_pvals <- read.csv("../../data/results/pairwise_t_evo.csv")
 
 # vectors for labels to be used for plots
@@ -114,7 +114,8 @@ df <- data.frame(x=0.07,
                             'paste(Delta, phi, "9")', 'paste(Delta, phi, "10")', 'paste(Delta, phi, "9/", phi, "10")'))
 
 # Plot tpm_scatter by knockout and genetic background
-scatter_plot <- tpm_scatter %>% filter(!grepl("evo|^11-44$", strain)) %>% 
+scatter_plot <- tpm_scatter %>% filter(!grepl("evo|^11-44$", strain)) %>%
+  mutate(T7Hi=T7Hi/1e6, tpm=tpm/1e6) %>%
   ggplot(aes(x=T7Hi, y=tpm)) +
   geom_segment(aes(x=-Inf, xend=Inf, y=-Inf, yend=Inf), inherit.aes=F, color="grey") + 
   geom_text_repel(aes(label = label), nudge_y = -0.005, segment.color="black") +
