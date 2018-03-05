@@ -4,7 +4,8 @@ library(cowplot)
 
 cbPalette <- c("#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7", "#999999")
 
-tpm_stats <- read.csv("../../data/results/pairwise_t_vs_wt.csv") %>% filter(padj < 0.05)
+tpm_stats <- read.csv("../../data/results/pairwise_t_vs_wt.csv") %>%
+  mutate(sig=if_else(padj < 0.05, T, F))
 
 counts <- read.csv("../../data/results/counts_rna_abundance.csv")
 
@@ -36,6 +37,7 @@ ratio_deop <- calc_all_ratios(treat.list=c('11-44', '11-44-phi9v2', '11-44-phi10
 
 wt_ratio <- inner_join(tpm_stats %>% filter(control=='T7Hi'), ratio_wt) %>% 
   filter(!strain %in% c('11-44', '8st-910evo', '910L2evo'))
+
 deop_ratio <- inner_join(tpm_stats %>% filter(control=='11-44'), ratio_deop)
 df <- data.frame(strain='11-44-910v2',
                  background='10deop',
@@ -85,7 +87,7 @@ df_nas <- data.frame(x=3,
                             'paste(Delta, phi, "9")', 'paste(Delta, phi, "10")', 'paste(Delta, phi, "9/", phi, "10")'))
 
 fc_wt <- wt_ratio %>%
-  ggplot(aes(x=gene, y=mean_ratio, fill=background)) + 
+  ggplot(aes(x=gene, y=mean_ratio, fill=background, alpha=sig)) + 
   geom_hline(aes(yintercept=1), color="#E69F00") +
   # annotate("text", x=5, y=1.1, label="wt", size=3.5) + 
   geom_bar(stat='identity') + 
@@ -93,8 +95,9 @@ fc_wt <- wt_ratio %>%
   geom_text(data=df_nas, aes(x=x, y=y, label=label), size=10, color="grey", inherit.aes=F) + 
   facet_grid(background~knockout, labeller=label_parsed) + 
   scale_fill_manual(values=cbPalette) + 
+  scale_alpha_discrete(range = c(0.2, 1)) +
   panel_border() + 
-  scale_y_continuous(expand=c(0,0), limits=c(0,1.5)) + 
+  scale_y_continuous(expand=c(0,0), limits=c(0,1.65), breaks=c(0, 0.5, 1, 1.5)) + 
   labs(x='gene', y='relative RNA \nabundance') +
   theme(legend.position = 'none')
 
@@ -108,7 +111,7 @@ df_nas_2 <- data.frame(x=3,
                      background=c('paste("10"["deop"])'), 
                      knockout=c('paste(Delta, phi, "9")', 'paste(Delta, phi, "10")', 'paste(Delta, phi, "9/", phi, "10")'))
 fc_deop <- deop_ratio %>%
-  ggplot(aes(x=gene, y=mean_ratio)) + 
+  ggplot(aes(x=gene, y=mean_ratio, alpha=sig)) + 
   # annotate("text", x=5, y=1.1, label="wt", size=3.5) + 
   geom_bar(stat='identity', fill="#56B4E9") + 
   geom_errorbar(aes(ymin=mean_ratio-sd, ymax=mean_ratio+sd), width=0.35) + 
@@ -116,7 +119,8 @@ fc_deop <- deop_ratio %>%
   geom_text(data=df_nas_2, aes(x=x, y=y, label=label), size=10, color="grey", inherit.aes=F) + 
   facet_grid(background~knockout, labeller=label_parsed) +
   panel_border() + 
-  scale_y_continuous(expand=c(0,0), limits=c(0,1.5)) + 
+  scale_y_continuous(expand=c(0,0), limits=c(0,1.65), breaks=c(0, 0.5, 1, 1.5)) + 
+  scale_alpha_discrete(range = c(0.2, 1)) +
   labs(x='gene', y='relative RNA \nabundance') +
   theme(legend.position = 'none')
 
