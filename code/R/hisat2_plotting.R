@@ -1,5 +1,6 @@
 # Analyzing RNA count data from Hisat2 alignments, normalizing by calculating TPM 
 library(tidyverse)
+#library(colorblindr)
 library(cowplot)
 library(broom)
 library(colorspace)
@@ -7,7 +8,7 @@ library(ggrepel)
 
 cbPalette <- c("#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7", "#999999")
 
-rna <- read.csv("../../data/results/rna_rna_abundance.csv")
+rna <- read.csv("../../data/results/counts_rna_abundance.csv")
 evo_pvals <- read.csv("../../data/results/pairwise_t_evo.csv")
 
 # vectors for labels to be used for plots

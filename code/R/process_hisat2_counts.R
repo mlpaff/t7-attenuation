@@ -39,7 +39,7 @@ rna <- left_join(conditions, data)
 
 # Normalize the raw RNA counts, first to the sum of raw counts for all genes up to and including gene 7.7, then by TPM
 rna %>% group_by(rep, strain) %>% 
-  mutate(nfactor=sum(counts[gene<='7.7'])) %>%
+  mutate(nfactor=sum(counts[stop <= 20240])) %>%
   mutate(normcounts=counts/nfactor) %>%
   mutate(rpk=normcounts/((stop-start)/1000)) %>%
   mutate(rpm=sum(rpk)) %>%
@@ -49,4 +49,4 @@ counts$gene <- factor(counts$gene, levels=rna$gene[1:60])
 
 write.csv(counts, "../../data/results/counts_rna_abundance.csv", row.names=FALSE)
 
-
+rna %>% filter(rep == 1, strain == 'T7Hi', stop <= 20240)
