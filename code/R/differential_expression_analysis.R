@@ -131,3 +131,7 @@ plot_grid(fc_wt, fc_deop, labels="AUTO", ncol=1, align='v', axis='r', rel_height
 plots
 
 save_plot("../../figures/fc_plots.pdf", plots, base_width = 6, base_height = 6)
+
+knitr::kable(wt_ratio %>% select(strain, gene, estimate, padj), format="latex")
+knitr::kable(deop_ratio %>% select(strain, gene, estimate, padj), format="latex")
+
