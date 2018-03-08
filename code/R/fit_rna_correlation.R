@@ -30,8 +30,10 @@ res <- mean_data %>% group_by(gene) %>%
          fdr = p.adjust(p.value, method = "fdr")) %>% 
   arrange(desc(R2))
 
-res <- res %>% select(gene, R2) %>% filter(!gene=="10B")
+res <- res %>% select(gene, R2, fdr) %>% filter(!gene=="10B")
 write.csv(res, "../../data/results/fitness_rna_correlation.csv", row.names = F)
+
+knitr::kable(res, format="latex")
 
 # `data` should not be here?
 final <- left_join(mean_data, res) # %>% 
