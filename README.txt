@@ -1,3 +1,3 @@
-Scripts and some processed data for evaluating viral attenuation in bacteriophage T7 using a novel strategy for attenuation: promoter knockout. 
+Scripts and processed data that accompany the following manuscript:
 
-Project is still in progress and not all data is available at this time. 
+Paff ML, Jack BR, Smith BL, Bull JJ, Wilke CO (2018) Combinatorial Approaches to Viral Attenuation.
