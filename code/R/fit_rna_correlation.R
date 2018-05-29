@@ -25,12 +25,16 @@ mean_data <- left_join(mean_rna, mean_fit)
 
 res <- mean_data %>% group_by(gene) %>% 
   summarize(p.value=cor.test(mean_count, mean_fit)$p.value,
-            cor=cor.test(mean_fit, mean_count)$estimate) %>% 
+            cor=cor.test(mean_fit, mean_count)$estimate, 
+            p.value.spear=cor.test(mean_count, mean_fit, method = "spearman")$p.value,
+            cor.spear=cor.test(mean_fit, mean_count, method="spearman")$estimate,
+            n=n()) %>% 
   mutate(R2 = round(cor*cor, 3),
-         fdr = p.adjust(p.value, method = "fdr")) %>% 
+         fdr = p.adjust(p.value, method = "fdr"),
+         fdr.spear = p.adjust(p.value.spear, method = "fdr")) %>% 
   arrange(desc(R2))
 
-res <- res %>% select(gene, R2, fdr) %>% filter(!gene=="10B")
+res <- res %>% select(gene, cor, R2, p.value, fdr, cor.spear, p.value.spear, fdr.spear, n) %>% filter(!gene=="10B")
 write.csv(res, "../../data/results/fitness_rna_correlation.csv", row.names = F)
 
 knitr::kable(res, format="latex")
